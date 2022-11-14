@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+body{
+text-align: center;
+font-family: sans-serif;
+font-weight: 100;
+}
+h1{
+color: #444444;
+font-weight: 100;
+font-size: 40px;
+}
+.clockdiv{
+	font-family: sans-serif;
+	color: #fff;
+	font-weight: 100;
+	text-align: center;
+	font-size: 30px;
+}
+.clockdiv > div{
+	padding: 10px;
+	border-radius: 3px;
+	background: #00BF96;
+}
+.clockdiv div > span{
+	padding: 5px;
+	border-radius: 3px;
+	background: #00816A;
+	display: block;
+}
+.smalltext{
+	padding-top: 5px;
+	font-size: 16px;
+}
+
+.flex{
+    display:flex;
+}
+
+.spacearround{
+    justify-content: space-arround;
+}
+.margin-1{
+    margin: 1em;
+}
+.margin-1-flex{
+    margin: 1em;
+    display: flex;
+align-items: center;
+}
+.margin-auto{
+    margin: auto;
+    width:10em;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+</style>
+</head>
+<body>
+<div style="text-align: center;"><h1>TD : Scrumville - Suivi des groupes</h1></div>
+<div class="flex">
+<div id="groups">
+</div>
+</div>
+
+<p id="demo"></p>
+
+<script>
+let json = `
+    {"groups":[
+        {"groupId":"1", "phases":[{"name":"Backlog produit", "duration": 7},{"name":"Sprint 1 - planification", "duration": 3},{"name":"Sprint 1 - sprint", "duration": 7},{"name":"Sprint 1 - revue", "duration": 5},{"name":"Sprint 2 - planification", "duration": 3},{"name":"Sprint 2 - sprint", "duration": 7},{"name":"Sprint 2 - revue", "duration": 5},{"name":"Sprint 3 - planification", "duration": 3},{"name":"Sprint 3 - sprint", "duration": 7},{"name":"Sprint 3 - revue", "duration": 5}]},
+        {"groupId":"2", "phases":[{"name":"Attente", "duration": 5},{"name":"Backlog produit", "duration": 7},{"name":"Sprint 1 - planification", "duration": 3},{"name":"Sprint 1 - sprint", "duration": 7},{"name":"Sprint 1 - revue", "duration": 5},{"name":"Sprint 2 - planification", "duration": 3},{"name":"Sprint 2 - sprint", "duration": 7},{"name":"Sprint 2 - revue", "duration": 5},{"name":"Sprint 3 - planification", "duration": 3},{"name":"Sprint 3 - sprint", "duration": 7},{"name":"Sprint 3 - revue", "duration": 5}]},
+        {"groupId":"3", "phases":[{"name":"Attente", "duration": 10},{"name":"Backlog produit", "duration": 7},{"name":"Sprint 1 - planification", "duration": 3},{"name":"Sprint 1 - sprint", "duration": 7},{"name":"Sprint 1 - revue", "duration": 5},{"name":"Sprint 2 - planification", "duration": 3},{"name":"Sprint 2 - sprint", "duration": 7},{"name":"Sprint 2 - revue", "duration": 5},{"name":"Sprint 3 - planification", "duration": 3},{"name":"Sprint 3 - sprint", "duration": 7},{"name":"Sprint 3 - revue", "duration": 5}]},
+        {"groupId":"4", "phases":[{"name":"Attente", "duration": 15},{"name":"Backlog produit", "duration": 7},{"name":"Sprint 1 - planification", "duration": 3},{"name":"Sprint 1 - sprint", "duration": 7},{"name":"Sprint 1 - revue", "duration": 5},{"name":"Sprint 2 - planification", "duration": 3},{"name":"Sprint 2 - sprint", "duration": 7},{"name":"Sprint 2 - revue", "duration": 5},{"name":"Sprint 3 - planification", "duration": 3},{"name":"Sprint 3 - sprint", "duration": 7},{"name":"Sprint 3 - revue", "duration": 5}]}
+    ]}
+`;
+
+const data = JSON.parse(json);
+console.log(data);
+
+let secondsCount = [];
+let currentPhase = [];
+
+for (i = 0; i< data['groups'].length; i++){
+    let id = data['groups'][i]['groupId'];
+
+    let groupDiv = document.createElement('div');
+    groupDiv.id = `group-${id}`;
+    groupDiv.className = "flex"
+    let title = document.createElement('div');
+    title.className = `margin-1-flex`;
+    let titleContent = document.createElement('h1');
+    titleContent.id = `title-${id}`;
+    titleContent.innerHTML = `Groupe ${id}`;
+    let clockDiv = document.createElement('div');
+    clockDiv.id = `colckdiv-${id}`;
+    clockDiv.className="flex spacearround clockdiv";
+    let step = document.createElement('div');
+    step.className = "margin-auto";
+    step.id = `step-${id}`;
+    let marginMinute = document.createElement('div');
+    marginMinute.className = `margin-1`;
+    marginMinute.id=`container-minutes-${id}`;
+    let spanMinute = document.createElement('span');
+    spanMinute.id = `minutes-${id}`;
+    spanMinute.className = "minutes";
+    let textMinutes = document.createElement('div');
+    textMinutes.className = "smalltext";
+    textMinutes.innerHTML = "Minutes";
+    let marginSecond = document.createElement('div');
+    marginSecond.className = `margin-1`;
+    marginSecond.id=`container-seconds-${id}`;
+    let spanSecond = document.createElement('span');
+    spanSecond.id = `seconds-${id}`;
+    spanSecond.className = "seconds";
+    let textSeconds = document.createElement('div');
+    textSeconds.className = "smalltext";
+    textSeconds.innerHTML = "Secondes";
+
+    document.getElementById('groups').appendChild(groupDiv);
+    groupDiv.appendChild(title);
+    title.appendChild(titleContent);
+    groupDiv.appendChild(clockDiv);
+    clockDiv.appendChild(step);
+    clockDiv.appendChild(marginMinute);
+    clockDiv.appendChild(marginSecond);
+    marginMinute.appendChild(spanMinute);
+    marginMinute.appendChild(textMinutes);
+    marginSecond.appendChild(spanSecond);
+    marginSecond.appendChild(textSeconds);
+
+    secondsCount[i] = 0;
+    currentPhase[i] = 0;
+}
+
+let x = setInterval(function() {
+
+for (i = 0; i< data['groups'].length; i++){
+    let id = data['groups'][i]['groupId'];
+    if (currentPhase[i] < data['groups'][i]['phases'].length){
+    let t = data['groups'][i]['phases'][currentPhase[i]]['duration']*60 - secondsCount[i];
+    let minutes = Math.floor((t / 60));
+    let seconds = Math.floor((t % 60));
+    document.getElementById(`minutes-${id}`).innerHTML = minutes;
+    document.getElementById(`step-${id}`).innerHTML = data['groups'][i]['phases'][currentPhase[i]]['name'];
+    document.getElementById(`seconds-${id}`).innerHTML =seconds;
+    secondsCount[i] ++;
+    if (t <= 0 && currentPhase[i] < data['groups'][i]['phases'].length) {
+		secondsCount[i] = 0;
+		currentPhase[i] ++;
+		}
+    }
+    else{
+        document.getElementById(`minutes-${id}`).innerHTML = 0;
+        document.getElementById(`step-${id}`).innerHTML = "Terminé";
+        document.getElementById(`seconds-${id}`).innerHTML =0;
+        document.getElementById(`step-${id}`).style.background="lightcoral";
+        document.getElementById(`minutes-${id}`).style.background="red";
+        document.getElementById(`seconds-${id}`).style.background="red";
+        document.getElementById(`container-minutes-${id}`).style.background="lightcoral";
+        document.getElementById(`container-seconds-${id}`).style.background="lightcoral";
+
+    }
+		}
+}, 1000);
+
+</script>
+</body>
+</html>
